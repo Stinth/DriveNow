@@ -60,3 +60,12 @@ df["idleTime"] = "default"
 for BilID in df.BilID.unique():
     df.loc[df["BilID"] == BilID, ["idleTime"]] = (df[df["BilID"] == BilID]["Start_tidspunkt"] - df[df["BilID"] == BilID]
     ["Slut_tidspunkt"].shift(periods=1)).astype("timedelta64[m]")
+
+
+import plotly.express as px
+
+fig = px.scatter_mapbox(df.tail(), lat="Latitude_Start", lon="Longitude_Start", hover_name="TurID", hover_data=["BilID","tripDuration"],
+                        color_discrete_sequence=["fuchsia"], zoom=3, height=300)
+fig.update_layout(mapbox_style="open-street-map")
+fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+fig.show()
