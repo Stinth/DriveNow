@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 import os
+###############################################
+# Place DriveNow data in the path given below #
+###############################################
 
 df = pd.read_csv("Data/DTU-data-til-case_LTMZones1.csv", sep=";")
 removeList = [[" ", "_"], ["(", ""], [")", ""]]
