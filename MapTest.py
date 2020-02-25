@@ -10,10 +10,10 @@ fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 fig.show()
 
 
-import plotly.express as px
-
-fig = px.scatter_mapbox(us_cities, lat="Latitude_Start", lon="Longitude_Start", hover_name="TurID", hover_data=["BilID","tripDuration"],
-                        color_discrete_sequence=["fuchsia"], zoom=3, height=300)
-fig.update_layout(mapbox_style="open-street-map")
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-fig.show()
+# import plotly.express as px
+#
+# fig = px.scatter_mapbox(us_cities, lat="Latitude_Start", lon="Longitude_Start", hover_name="TurID", hover_data=["BilID","tripDuration"],
+#                         color_discrete_sequence=["fuchsia"], zoom=3, height=300)
+# fig.update_layout(mapbox_style="open-street-map")
+# fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+# fig.show()
