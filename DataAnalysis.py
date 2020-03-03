@@ -16,6 +16,7 @@ for remove, replaceWith in removeList:
 # 'coerce' results in NaN for entries that can't be converted
 df.Batteristatus_start = pd.to_numeric(df.Batteristatus_start, errors='coerce')
 df.Batteristatus_slut = pd.to_numeric(df.Batteristatus_slut, errors='coerce')
+df["peak_hour"] = "default"
 
 
 # stringToDatetime
@@ -28,6 +29,7 @@ def stringToDatetime(columns):
             df.loc[((df.Reservationstidspunkt - breakpoint).astype("timedelta64[m]") > 0) & (df.TurID != 106025), column] = \
                 df.loc[((df.Reservationstidspunkt - breakpoint).astype("timedelta64[m]") > 0) & (df.TurID != 106025), column] + pd.Timedelta(hours=1)
         elif column == "Start_tidspunkt":
+            df["peak_hour"] = df["Start_tidspunkt"].dt.hour
             breakpoint = datetime(2017, 10, 29, 2, 49)
             df.loc[
                 ((df.Start_tidspunkt - breakpoint).astype("timedelta64[m]") > 0) & (df.TurID != 106025), column] = \
@@ -178,10 +180,11 @@ OutlierHandling(df)
 
 df["idleTime"] = df.idleTime.astype("float64")
 
+
 import plotly.express as px
 
-fig = px.scatter_mapbox(df, lat="Latitude_Start", lon="Longitude_Start", hover_name="TurID", hover_data=["BilID","tripDuration"],
-                        zoom=10, height=900, color="idleTime") # color_continuous_scale=px.colors.cyclical.IceFire
+fig = px.scatter_mapbox(df[(~df.idleTime.isnull()) & (df.idleTime > 0)], lat="Latitude_Start", lon="Longitude_Start", hover_name="TurID", hover_data=["BilID","tripDuration","FromZoneID", "idleTime"],
+                        zoom=10, height=900, color="peak_hour", size="idleTime", color_continuous_scale=px.colors.cyclical.IceFire, size_max=7)
 fig.update_layout(mapbox_style="open-street-map")
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 fig.show()
