@@ -7,7 +7,7 @@ import seaborn
 import matplotlib.pyplot as plt
 
 from DataAnalysis import *
-from PlotMap import *
+from Plotting import *
 
 # Dataframe visual settings
 pd.set_option('display.max_rows', 500)
