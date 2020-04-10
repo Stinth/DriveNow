@@ -4,7 +4,9 @@ import os
 from dateutil import tz
 from datetime import datetime, timedelta
 import seaborn
-from PlotMap import *
+from Plotting import *
+import matplotlib.pyplot as plt
+
 
 ###############################################
 # Place DriveNow data in the path given below #
@@ -19,13 +21,9 @@ def initial_columnname_changes(df):
         df.columns = [c.replace(remove, replaceWith) for c in df.columns]
 
 
-initial_columnname_changes(df)
-
-
 # stringToDatetime
 # converts dataframe columns eg. from list to type datetime with formatting "%d/%m/%Y %H:%M"
 def stringToDatetime(df, columns):
-    df["hour"] = "default"
     for column in columns:
         df[column] = pd.to_datetime(df[column], dayfirst=True, format="%d/%m/%Y %H:%M")
         if column == "Reservationstidspunkt":
@@ -37,8 +35,6 @@ def stringToDatetime(df, columns):
                 df.loc[((df.Reservationstidspunkt - breakpoint).astype("timedelta64[m]") > 0) & (
                             df.TurID != 106025), column] + pd.Timedelta(hours=1)
         elif column == "Start_tidspunkt":
-            # Creates new column for each trip indicating during which hour the trip started
-            df["hour"] = df["Start_tidspunkt"].dt.hour
             # breakpoint here indicates the point at which the next trip in the dataset is using winter time
             breakpoint = datetime(2017, 10, 29, 2, 49)
             # the additional arguments ensure that winter time calculations is executed on all needed trips
@@ -56,9 +52,6 @@ def stringToDatetime(df, columns):
                 df.loc[(((df.Slut_tidspunkt - breakpoint).astype("timedelta64[m]") > 0) & (
                         df.TurID != 106024)) | (df.TurID == 106025), column] + pd.Timedelta(hours=1)
     return
-
-
-stringToDatetime(df, ["Reservationstidspunkt", "Start_tidspunkt", "Slut_tidspunkt"])
 
 
 def sort_drop_nans_add_colums(df):
@@ -81,7 +74,11 @@ def sort_drop_nans_add_colums(df):
     df["idleTime"] = "default"
 
 
-sort_drop_nans_add_colums(df)
+def add_hour_and_date(df):
+    # Creates new column for each trip indicating the date the trip started
+    df["date"] = df["Start_tidspunkt"].dt.date
+    # Creates new column for each trip indicating during which hour the trip started
+    df["hour"] = df["Start_tidspunkt"].dt.hour
 
 
 # Do not run this function multiple times
@@ -157,10 +154,6 @@ def fixMultiTravel(df):
             df.drop(removeIndex, inplace=True)
 
 
-# fixing various data problems
-fixDataMissing(df)
-
-
 def update_idleTime(df):
     for BilID in df.BilID.unique():
         # Populates column idleTime by difference in last use end minus this use start time
@@ -169,12 +162,6 @@ def update_idleTime(df):
                                                         periods=1)).astype("timedelta64[m]")
 
     df["idleTime"] = df.idleTime.astype("float64")
-
-
-update_idleTime(df)
-# merging trips within a short timespan by the same PersonID
-fixMultiTravel(df)
-update_idleTime(df)
 
 
 # drops any rows with a tripDuration larger than 3 times interquantile range
@@ -201,4 +188,41 @@ def OutlierHandling(df):
     df.drop(df[(df.idleTime < q25 - cutoff) | (df.idleTime > q75 + cutoff)].index, inplace=True)
 
 
-OutlierHandling(df)
+def create_peak_hour_df(df):
+    peakHour = df[["date", "hour", "FromZoneID"]]
+    peakHour.loc[:, "date"] = pd.to_datetime(peakHour["date"], format="%Y-%m-%d")
+    peakHourZone = peakHour.groupby(peakHour.columns.tolist()).size().reset_index().rename(columns={0:'records'})
+    peakHourTotal = peakHour[["date", "hour"]].groupby(peakHour[["date", "hour"]].columns.tolist()).size().\
+        reset_index().rename(columns={0:'records'})
+
+    peakHourDaily = df[["date", df["date"].dt.dayofweek, "hour", "FromZoneID"]]
+
+
+def statistics_table(df):
+    FromZone_groups = df.groupby(df['FromZoneID']
+                                 )['Start_tidspunkt'].count()
+
+    ToZone_groups = df.groupby(df['ToZoneID']
+                               )['Slut_tidspunkt'].count()
+
+    Diff = FromZone_groups - ToZone_groups
+
+    ProcentDep = (FromZone_groups / df['Start_tidspunkt'].count()) * 100
+
+    ProcentArr = (ToZone_groups / df['Slut_tidspunkt'].count()) * 100
+
+    MeanIdle = df.groupby(df['FromZoneID']
+                          )['idleTime'].mean()
+
+    Zones = pd.concat([FromZone_groups, ToZone_groups, Diff, ProcentDep, ProcentArr, MeanIdle], axis=1, join='outer',
+                      ignore_index=False, keys=None,
+                      levels=None, names=None, verify_integrity=False, copy=True)
+
+    Zones.columns = ['Total Departures', 'Total Arrivals', 'Diff', '% of total departures', '% of total arrivals',
+                     'Mean idle time']
+
+    Zones = Zones.sort_values(by='Total Departures', ascending=False)
+
+    return Zones
+
+
