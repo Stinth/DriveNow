@@ -54,3 +54,4 @@ except FileNotFoundError:
 plot_trip_per_day(df)
 plot_trip_per_weekday(df)
 print(statistics_table(df))
+HistoUgedage(df)
