@@ -44,6 +44,7 @@ except FileNotFoundError:
     # Outlier handling #
     # drops any rows with a tripDuration larger than 3 times interquantile range
     OutlierHandling(df)
+    drop_first_and_last_day(df)
 
     df.to_pickle("Data/DTU_DriveNow_Cleaned_Data")
 
