@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from DataAnalysis import *
 from Plotting import *
+from PredModels import *
 
 # Dataframe visual settings
 pd.set_option('display.max_rows', 500)
@@ -56,3 +57,8 @@ plot_trip_per_day(df)
 plot_trip_per_weekday(df)
 print(statistics_table(df))
 HistoUgedage(df)
+
+# biggerZones(df)
+# d = timelags(df)
+#
+# target, predictors = splitData(d)
