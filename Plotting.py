@@ -81,7 +81,7 @@ def plot_trip_per_day(df):
 
 
 def HistoUgedage(df):
-    sorter = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    sorter = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     sorterIndex = dict(zip(sorter, range(len(sorter))))
     week_df = df.groupby(df['Start_tidspunkt'].dt.day_name())['TurID'].count()
 
@@ -92,7 +92,7 @@ def HistoUgedage(df):
 
     fig, ax = plt.subplots(figsize=(10, 6), facecolor='white')
 
-    ax.bar(week_df.Day_id, week_df.TurID)
+    ax.bar(week_df.Day_id, week_df.TurID, color = ["#1A3780", "#20459F", "#2652BF", "#2D60DF",  "#336EFF", "#67B608", "#FF00E0"])
     ax.set_xticks([x + 0 for x in week_df.Day_id])
     ax.set_xticklabels(week_df.index)
 
