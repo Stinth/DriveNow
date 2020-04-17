@@ -24,6 +24,8 @@ def initial_columnname_changes(df):
 # stringToDatetime
 # converts dataframe columns eg. from list to type datetime with formatting "%d/%m/%Y %H:%M"
 def stringToDatetime(df, columns):
+    # Odd having to import during a function, but was causing errors not to.
+    from datetime import datetime
     for column in columns:
         df[column] = pd.to_datetime(df[column], dayfirst=True, format="%d/%m/%Y %H:%M")
         if column == "Reservationstidspunkt":
@@ -186,6 +188,15 @@ def OutlierHandling(df):
     IQR = q75 - q25
     cutoff = K_value * IQR
     df.drop(df[(df.idleTime < q25 - cutoff) | (df.idleTime > q75 + cutoff)].index, inplace=True)
+
+
+
+def drop_first_and_last_day(df):
+    firstDay = df.sort_values(by="Start_tidspunkt").iloc[0].Start_tidspunkt
+    lastDay = df.sort_values(by="Start_tidspunkt").iloc[-1].Start_tidspunkt
+    df.drop(df[df.Start_tidspunkt.dt.date == firstDay].index | df[df.Start_tidspunkt.dt.date == lastDay].index
+            , inplace=True)
+
 
 
 def create_peak_hour_df(df):
