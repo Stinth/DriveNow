@@ -61,6 +61,12 @@ def time_to_block(time):
         if 24 >= clockTime >= 21:
             return "Off-Peak Evening {}".format(dayName)
 
+def time_to_block_hourly(time):
+    dayName = time.day_name()
+    clockTime = time.hour
+    if dayName in {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}:
+        return str(clockTime) + " " + "{}".format(dayName)
+
 # %matplotlib inline
 # %config InlineBackend.figure_format='retina'
 
@@ -99,6 +105,13 @@ working_df["date_time_block"] = working_df.date.astype(str) + " " + working_df.T
 working_df = working_df.groupby(["date_time_block"])["TurID"].sum()
 time = np.arange(0, len(working_df.index)/10, 0.1)
 df = pd.DataFrame(working_df.values, index=time, columns=["trips"])
+# df['date_week'] = df['Start_tidspunkt'].dt.strftime('%D')
+# hour_test = df[df.FromZoneID == 10234]
+# hour_test["newtest"] = hour_test.date.astype(str) + " " + hour_test.hour.astype(str)
+# hour_test = hour_test.groupby(["newtest"])["TurID"].count()
+#
+# time = np.arange(0, len(hour_test)/10, 0.1)
+# df = pd.DataFrame(hour_test.values, index=time, columns=["trips"])
 
 train_size = int(len(df) * 0.8)
 test_size = len(df) - train_size
